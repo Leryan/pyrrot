@@ -3,7 +3,7 @@
 Python Rotten Requirements
 
  * Supports **only** `pypi.python.org` as remote repository
- * Uses the `packaging` module to parse and compare versions
+ * Uses the [packaging](https://github.com/pypa/packaging) module to parse and compare versions
  * Inspired by [piprot](https://github.com/sesh/piprot)
 
 ## Install
