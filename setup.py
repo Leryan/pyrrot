@@ -6,6 +6,19 @@ from setuptools import setup, find_packages
 
 VERSION = os.getenv('VERSION', '0.0.1')
 
+def requirements():
+    pkgpath = os.path.dirname(os.path.realpath(__file__))
+    reqs = []
+    requires_path = os.path.join(pkgpath, 'requirements.txt')
+
+    with open(requires_path) as f:
+        reqs = f.readlines()
+
+    reqs = filter(None, [r.strip() for r in reqs])
+    reqs = [r for r in reqs if not r.startswith('#')]
+
+    return reqs
+
 if __name__ == '__main__':
     setup(
         name='pyrrot',
@@ -21,5 +34,6 @@ if __name__ == '__main__':
             'console_scripts': [
                 'pyrrot = pyrrot:main'
             ]
-        }
+        },
+        install_requires=requirements()
     )
