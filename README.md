@@ -25,6 +25,20 @@ python-ldap: wants: <3.0.0, latest is 3.0.0
 ```
 
 ```
-$ pyrrot -r ~/someproject/requirements.txt --jsonç
-...cool json output you can use to do your own job...
+$ pyrrot -r ~/someproject/requirements.txt --json | python -m json.tool
+```
+
+```json
+{
+    "psutil": {
+        "old": false,
+        "wants": "<5.5.0",
+        "latest": "5.4.3"
+    },
+    "pymongo": {
+        "old": true,
+        "wants": "<2.9.0",
+        "latest": "3.6.1"
+    }
+}
 ```
