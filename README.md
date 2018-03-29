@@ -2,6 +2,10 @@
 
 Python Rotten Requirements
 
+ * Supports **only** `pypi.python.org` as remote repository
+ * Uses the `packaging` module to parse and compare versions
+ * Inspired by [piprot](https://github.com/sesh/piprot)
+
 ## Install
 
 ```bash
@@ -46,3 +50,8 @@ $ pyrrot -r ~/someproject/requirements.txt --json | python -m json.tool
     }
 }
 ```
+
+## Todo
+
+ * [ ] Support remote dependencies from git or any other VCS
+ * [ ] Support for custom remote dependency checker
