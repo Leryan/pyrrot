@@ -2,7 +2,7 @@
 
 Python Rotten Requirements
 
-## Install
+## Install
 
 ```bash
 pip install git+https://github.com/Leryan/pyrrot
