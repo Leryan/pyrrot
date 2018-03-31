@@ -11,12 +11,6 @@ from packaging.requirements import Requirement
 from packaging.version import Version
 from packaging.specifiers import Specifier
 
-def version_to_json(o):
-    if isinstance(o, Version):
-        return o.public
-
-    return JSONEncoder.default(o)
-
 class Remote(object):
 
     def get_dependency(self, name):
@@ -74,8 +68,14 @@ class HumanPrinter(Printer):
 
 class JSONPrinter(Printer):
 
+    def version_to_json(self, o):
+        if isinstance(o, Version):
+            return o.public
+
+        return JSONEncoder.default(self, o)
+
     def print_olds(self, olds):
-        print(json.dumps(olds, default=version_to_json))
+        print(json.dumps(olds, default=self.version_to_json))
 
 class Pyrrot(object):
 
