@@ -1,10 +1,54 @@
 import argparse
-import json
 import re
+import sys
+
+import json
+from json import JSONEncoder
 
 import requests
 
-from packaging import version
+from packaging.requirements import Requirement
+from packaging.version import Version
+from packaging.specifiers import Specifier
+
+def version_to_json(self, o):
+    if isinstance(o, Version):
+        return o.public
+
+    return JSONEncoder.default(self, o)
+
+class Remote(object):
+
+    def get_dependency(self, name):
+        """
+        :rtype Version:
+        """
+        raise NotImplementedError()
+
+class RemotePyPi(Remote):
+
+    def __init__(self):
+        super(RemotePyPi, self).__init__()
+
+        self.s = requests.Session()
+        self.api_url = 'https://pypi.python.org/pypi/{}/json'
+
+    def get_dependency(self, name):
+        r = self.s.get(self.api_url.format(name))
+
+        if not r.ok:
+            raise Exception(
+                'dep {}: {}: {}'.format(name, r.status_code, r.text)
+            )
+
+        jr = r.json()
+
+        return Version(jr['info']['version'])
+
+class RemoteBullshit(Remote):
+
+    def get_dependency(self, name):
+        return Version('1.2.3')
 
 class Printer(object):
 
@@ -14,47 +58,51 @@ class Printer(object):
 class HumanPrinter(Printer):
 
     def print_olds(self, olds):
+        std_msg = '{}: {}: wants: {}, latest: {}\n'
         for req, val in olds.items():
-            if val['old'] is True:
-                print('{}: wants: {}, latest is {}'.format(
-                    req, val['wants'], val['latest']
-                ))
+            state = 'newest'
+            old = val['old']
+            if old:
+                state = 'old'
+
+            msg = std_msg.format(req, state, val['wants'], val['latest'])
+
+            if old:
+                sys.stderr.write(msg)
+            else:
+                sys.stdout.write(msg)
 
 class JSONPrinter(Printer):
 
     def print_olds(self, olds):
-        print(json.dumps(olds))
+        print(json.dumps(olds, default=version_to_json))
 
 class Pyrrot(object):
 
-    RE_VERSION_CHECK = re.compile('^([^<=>]+)(<|<=|==|>=|>)([^<=>]+)$')
+    def __init__(self, remote):
+        if not issubclass(remote.__class__, Remote):
+            raise TypeError('remote does not subclasses {}'.format(Remote.__class__.__name__))
 
-    def __init__(self):
-        self.s = requests.Session()
+        self.remote = remote
 
-    def compare(self, current, operator, latest):
-        vcurrent = version.parse(current)
-        vlatest = version.parse(latest)
+    def is_old(self, latest, specifiers):
+        """
+        :param latest Version:
+        :param required SpecifierSet:
+        """
 
-        if operator == '<':
-            return vcurrent < vlatest
+        old = False
 
-        elif operator == '<=':
-            return vcurrent <= vlatest
+        for spec in specifiers:
+            if spec.operator in ['>', '>=']:
+                continue
 
-        elif operator == '==':
-            return vcurrent == vlatest
+            latest_spec = Specifier('<{}'.format(str(latest)))
 
-        elif operator == '>=':
-            return vcurrent >= vlatest
+            if list(latest_spec.filter([spec.version])):
+                old = True
 
-        elif operator == '>':
-            return vcurrent > vlatest
-
-        raise ValueError('unsupported operator "{}"'.format(operator))
-
-    def check_constraint(self, current, constraint, latest):
-        return self.compare(latest, constraint, current)
+        return old
 
     def read_requirements(self, path):
         res = []
@@ -64,42 +112,26 @@ class Pyrrot(object):
 
         return res
 
-    def parse_requirements(self, reqs):
+    def parse_requirements(self, sreqs):
         """
-        :param reqs list[str]:
+        :param sreqs list[str]:
         """
-        parsed = {}
-
-        for req in reqs:
-            m = self.RE_VERSION_CHECK.match(req)
-            if m is not None:
-                depname = m.group(1)
-                depoperator = m.group(2)
-                depversion = m.group(3)
-                parsed[depname] = {
-                    'operator': depoperator,
-                    'version': depversion
-                }
-
-        return parsed
-
-    def get_latest(self, depname):
-        r = self.s.get('https://pypi.python.org/pypi/{}/json'.format(
-            depname
-        ))
-
-        if not r.ok:
-            raise Exception('dep {}: {}: {}'.format(depname, r.status_code, r.text))
-
-        jr = r.json()
-
-        return jr['info']['version']
+        return {
+            req.name: req.specifier for req in [
+                Requirement(sreq) for sreq in sreqs
+            ]
+        }
 
     def get_latests(self, parsed):
         latests = {}
 
         for depname, _ in parsed.items():
-            latests[depname] = self.get_latest(depname)
+            version = self.remote.get_dependency(depname)
+
+            if not isinstance(version, Version):
+                raise TypeError('remote.get_dependency returned a {} object instead of Version'.format(version.__class__.__name__))
+
+            latests[depname] = version
 
         return latests
 
@@ -107,13 +139,9 @@ class Pyrrot(object):
         olds = {}
 
         for req, vreq in parsed.items():
-            is_old = not self.check_constraint(
-                vreq['version'], vreq['operator'], latests[req]
-            )
-
             olds[req] = {
-                'old': is_old,
-                'wants': '{}{}'.format(vreq['operator'], vreq['version']),
+                'old': self.is_old(latests[req], vreq),
+                'wants': str(parsed[req]),
                 'latest': latests[req]
             }
 
@@ -141,7 +169,9 @@ class Pyrrot(object):
 
     @staticmethod
     def App():
-        return Pyrrot()
+        remote = RemotePyPi()
+        #remote = RemoteBullshit()
+        return Pyrrot(remote)
 
 def main():
     app = Pyrrot.App()
