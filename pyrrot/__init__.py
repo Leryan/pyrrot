@@ -11,11 +11,11 @@ from packaging.requirements import Requirement
 from packaging.version import Version
 from packaging.specifiers import Specifier
 
-def version_to_json(self, o):
+def version_to_json(o):
     if isinstance(o, Version):
         return o.public
 
-    return JSONEncoder.default(self, o)
+    return JSONEncoder.default(o)
 
 class Remote(object):
 
