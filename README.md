@@ -24,10 +24,10 @@ pyrrot -r requirements.txt [--json]
 
 ```
 $ pyrrot -r ~/someproject/requirements.txt
-Beaker: wants: <1.6.0, latest is 1.9.0
-influxdb: wants: ==2.12.0, latest is 5.0.0
-pymongo: wants: <2.9.0, latest is 3.6.1
-python-ldap: wants: <3.0.0, latest is 3.0.0
+Beaker: old: wants: <1.6.0, latest: 1.9.0
+influxdb: old: wants: ==2.12.0, latest: 5.0.0
+pymongo: old: wants: <2.9.0, latest: 3.6.1
+python-ldap: newest: wants: <3.0.0, latest: 3.0.0
 ```
 
 ### JSON output

@@ -97,7 +97,14 @@ class Pyrrot(object):
             if spec.operator in ['>', '>=']:
                 continue
 
-            latest_spec = Specifier('<{}'.format(str(latest)))
+            latest_op = '<'
+            if spec.operator in ['<']:
+                latest_op = '<='
+
+            latest_spec = Specifier('{}{}'.format(
+                latest_op,
+                str(latest)
+            ))
 
             if list(latest_spec.filter([spec.version])):
                 old = True
