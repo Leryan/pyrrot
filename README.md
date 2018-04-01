@@ -2,7 +2,8 @@
 
 Python Rotten Requirements
 
- * Supports **only** `pypi.python.org` as remote repository
+ * Supports `pypi.python.org` as remote repository by default, by lets you write your own remote checker, see the `RemotePyPi` class
+ * Supports "human" and JSON output, also lets you write your own printer, see the `HumanPrinter` class
  * Uses the [packaging](https://github.com/pypa/packaging) module to parse and compare versions
  * Inspired by [piprot](https://github.com/sesh/piprot)
 
@@ -33,7 +34,7 @@ python-ldap: old: wants: <3.0.0, latest: 3.0.0
 ### JSON output
 
 ```
-$ pyrrot -r ~/someproject/requirements.txt --json | python -m json.tool
+$ pyrrot -r ~/someproject/requirements.txt --printer pyrrot.JSONPrinter | python -m json.tool
 ```
 
 ```json

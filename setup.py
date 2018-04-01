@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup, find_packages
 
-VERSION = os.getenv('VERSION', '0.0.2')
+VERSION = os.getenv('VERSION', '0.0.3')
 
 def requirements():
     pkgpath = os.path.dirname(os.path.realpath(__file__))

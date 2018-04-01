@@ -161,24 +161,39 @@ class Pyrrot(object):
             ]
         }
 
-    @staticmethod
-    def get_remote_class(remote_mod_path):
-        srmp = remote_mod_path.split('.')
+    @classmethod
+    def get_class(cls, mod_path):
+        mp = mod_path.split('.')
 
-        mod_path = '.'.join(srmp[:-1])
-        class_name = srmp[-1]
+        mod_path = '.'.join(mp[:-1])
+        class_name = mp[-1]
 
         module = importlib.import_module(mod_path)
 
-        remote_class = getattr(module, class_name, None)
+        the_class = getattr(module, class_name, None)
 
-        if remote_class is None:
-            raise Exception('remote class not found: {}'.format(remote_mod_path))
+        if the_class is None:
+            raise Exception('remote class not found: {}'.format(mod_path))
+
+        return the_class
+
+    @classmethod
+    def get_remote_class(cls, remote_mod_path):
+        remote_class = cls.get_class(remote_mod_path)
 
         if not issubclass(remote_class, Remote):
-            raise TypeError('remote does not subclasses {}'.format(remote_class.__name__))
+            raise TypeError('remote does not subclasses {}'.format(Remote.__name__))
 
         return remote_class
+
+    @classmethod
+    def get_printer_class(cls, printer_mod_path):
+        printer_class = cls.get_class(printer_mod_path)
+
+        if not issubclass(printer_class, Printer):
+            raise TypeError('remote does not subclasses {}'.format(Printer.__name__))
+
+        return printer_class
 
     def get_olds(self, parsed, latests):
         olds = {}
@@ -203,19 +218,21 @@ class Pyrrot(object):
     def run(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('-r', help='requirements.txt file', required=True, dest='reqs')
-        parser.add_argument('--json', action='store_true', help='print as json')
+        parser.add_argument(
+            '--printer',
+            default='{}.HumanPrinter'.format(__name__),
+            help='output class. for JSON use {}.JSONPrinter'.format(__name__)
+        )
         parser.add_argument('--remote', default='{}.RemotePyPi'.format(__name__))
 
         args = parser.parse_args()
 
         remote_class = self.get_remote_class(args.remote)
+        printer_class = self.get_printer_class(args.printer)
 
-        olds = self.work(args.reqs, remote_class())
-
-        if args.json:
-            printer = JSONPrinter()
-        else:
-            printer = HumanPrinter()
+        printer = printer_class()
+        remote = remote_class()
+        olds = self.work(args.reqs, remote)
 
         printer.print_olds(olds)
 
