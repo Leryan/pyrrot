@@ -55,4 +55,5 @@ $ pyrrot -r ~/someproject/requirements.txt --printer pyrrot.JSONPrinter | python
 ## Todo
 
  * [x] Support for custom remote dependency checker
+ * [ ] Check requirements for currently installed package
  * [ ] Support remote dependencies from git or any other VCS
