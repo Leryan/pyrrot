@@ -12,6 +12,8 @@ from packaging.requirements import Requirement
 from packaging.version import Version
 from packaging.specifiers import Specifier, SpecifierSet
 
+__version__ = '0.0.3'
+
 class Remote(object):
 
     def get_dependency(self, name):
