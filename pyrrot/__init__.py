@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import re
 import sys
 
@@ -160,6 +161,25 @@ class Pyrrot(object):
             ]
         }
 
+    @staticmethod
+    def get_remote_class(remote_mod_path):
+        srmp = remote_mod_path.split('.')
+
+        mod_path = '.'.join(srmp[:-1])
+        class_name = srmp[-1]
+
+        module = importlib.import_module(mod_path)
+
+        remote_class = getattr(module, class_name, None)
+
+        if remote_class is None:
+            raise Exception('remote class not found: {}'.format(remote_mod_path))
+
+        if not issubclass(remote_class, Remote):
+            raise TypeError('remote does not subclasses {}'.format(remote_class.__name__))
+
+        return remote_class
+
     def get_olds(self, parsed, latests):
         olds = {}
 
@@ -184,16 +204,13 @@ class Pyrrot(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-r', help='requirements.txt file', required=True, dest='reqs')
         parser.add_argument('--json', action='store_true', help='print as json')
+        parser.add_argument('--remote', default='{}.RemotePyPi'.format(__name__))
 
         args = parser.parse_args()
 
-        remote = RemotePyPi()
-        #remote = RemoteBullshit()
+        remote_class = self.get_remote_class(args.remote)
 
-        if not issubclass(remote.__class__, Remote):
-            raise TypeError('remote does not subclasses {}'.format(Remote.__class__.__name__))
-
-        olds = self.work(args.reqs, remote)
+        olds = self.work(args.reqs, remote_class())
 
         if args.json:
             printer = JSONPrinter()

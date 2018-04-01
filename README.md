@@ -53,5 +53,5 @@ $ pyrrot -r ~/someproject/requirements.txt --json | python -m json.tool
 
 ## Todo
 
+ * [x] Support for custom remote dependency checker
  * [ ] Support remote dependencies from git or any other VCS
- * [ ] Support for custom remote dependency checker
