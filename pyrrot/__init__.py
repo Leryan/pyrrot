@@ -9,7 +9,7 @@ import requests
 
 from packaging.requirements import Requirement
 from packaging.version import Version
-from packaging.specifiers import Specifier
+from packaging.specifiers import Specifier, SpecifierSet
 
 class Remote(object):
 
@@ -85,11 +85,18 @@ class Pyrrot(object):
 
         self.remote = remote
 
-    def is_old(self, latest, specifiers):
+    @staticmethod
+    def is_old(latest, specifiers):
         """
         :param latest Version:
         :param required SpecifierSet:
         """
+
+        if not isinstance(latest, Version):
+            raise TypeError('latest is not of type Version')
+
+        if not isinstance(specifiers, SpecifierSet):
+            raise TypeError('specifiers is not of type SpecifierSet')
 
         old = False
 
@@ -111,7 +118,8 @@ class Pyrrot(object):
 
         return old
 
-    def read_requirements(self, path):
+    @staticmethod
+    def read_requirements(path):
         res = []
 
         with open(path, 'r') as fh:
@@ -119,7 +127,8 @@ class Pyrrot(object):
 
         return res
 
-    def parse_requirements(self, sreqs):
+    @staticmethod
+    def parse_requirements(sreqs):
         """
         :param sreqs list[str]:
         """
