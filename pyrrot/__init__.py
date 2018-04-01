@@ -79,12 +79,6 @@ class JSONPrinter(Printer):
 
 class Pyrrot(object):
 
-    def __init__(self, remote):
-        if not issubclass(remote.__class__, Remote):
-            raise TypeError('remote does not subclasses {}'.format(Remote.__class__.__name__))
-
-        self.remote = remote
-
     @staticmethod
     def is_old(latest, specifiers):
         """
@@ -138,11 +132,11 @@ class Pyrrot(object):
             ]
         }
 
-    def get_latests(self, parsed):
+    def get_latests(self, parsed, remote):
         latests = {}
 
         for depname, _ in parsed.items():
-            version = self.remote.get_dependency(depname)
+            version = remote.get_dependency(depname)
 
             if not isinstance(version, Version):
                 raise TypeError('remote.get_dependency returned a {} object instead of Version'.format(version.__class__.__name__))
@@ -163,6 +157,14 @@ class Pyrrot(object):
 
         return olds
 
+    def work(self, requirements_path, remote):
+        reqs = self.read_requirements(requirements_path)
+        parsed = self.parse_requirements(reqs)
+        latests = self.get_latests(parsed, remote)
+        olds = self.get_olds(parsed, latests)
+
+        return olds
+
     def run(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('-r', help='requirements.txt file', required=True, dest='reqs')
@@ -170,10 +172,13 @@ class Pyrrot(object):
 
         args = parser.parse_args()
 
-        reqs = self.read_requirements(args.reqs)
-        parsed = self.parse_requirements(reqs)
-        latests = self.get_latests(parsed)
-        olds = self.get_olds(parsed, latests)
+        remote = RemotePyPi()
+        #remote = RemoteBullshit()
+
+        if not issubclass(remote.__class__, Remote):
+            raise TypeError('remote does not subclasses {}'.format(Remote.__class__.__name__))
+
+        olds = self.work(args.reqs, remote)
 
         if args.json:
             printer = JSONPrinter()
@@ -185,9 +190,7 @@ class Pyrrot(object):
 
     @staticmethod
     def App():
-        remote = RemotePyPi()
-        #remote = RemoteBullshit()
-        return Pyrrot(remote)
+        return Pyrrot()
 
 def main():
     app = Pyrrot.App()
