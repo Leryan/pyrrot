@@ -19,6 +19,29 @@ class Remote(object):
         """
         raise NotImplementedError()
 
+    def get_latests(self, parsed):
+        """
+        You may want to override this method if you are able
+        to fetch all dependencies at once and build the map
+        is required.
+
+        Otherwise, this function will ask get_dependency() to work.
+
+        :returns: map of dependencies latest version
+        :rtype dict[str]Version
+        """
+        latests = {}
+
+        for depname in parsed.keys():
+            version = self.get_dependency(depname)
+
+            if not isinstance(version, Version):
+                raise TypeError('get_dependency returned a {} object instead of Version'.format(version.__class__.__name__))
+
+            latests[depname] = version
+
+        return latests
+
 class RemotePyPi(Remote):
 
     def __init__(self):
@@ -132,19 +155,6 @@ class Pyrrot(object):
             ]
         }
 
-    def get_latests(self, parsed, remote):
-        latests = {}
-
-        for depname, _ in parsed.items():
-            version = remote.get_dependency(depname)
-
-            if not isinstance(version, Version):
-                raise TypeError('remote.get_dependency returned a {} object instead of Version'.format(version.__class__.__name__))
-
-            latests[depname] = version
-
-        return latests
-
     def get_olds(self, parsed, latests):
         olds = {}
 
@@ -160,7 +170,7 @@ class Pyrrot(object):
     def work(self, requirements_path, remote):
         reqs = self.read_requirements(requirements_path)
         parsed = self.parse_requirements(reqs)
-        latests = self.get_latests(parsed, remote)
+        latests = remote.get_latests(parsed)
         olds = self.get_olds(parsed, latests)
 
         return olds
