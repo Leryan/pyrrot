@@ -19,7 +19,7 @@ class Remote(object):
         """
         raise NotImplementedError()
 
-    def get_latests(self, parsed):
+    def get_latests(self, dependencies):
         """
         You may want to override this method if you are able
         to fetch all dependencies at once and build the map
@@ -27,12 +27,13 @@ class Remote(object):
 
         Otherwise, this function will ask get_dependency() to work.
 
+        :param dependencies list[str]: dependencies name
         :returns: map of dependencies latest version
         :rtype dict[str]Version
         """
         latests = {}
 
-        for depname in parsed.keys():
+        for depname in dependencies:
             version = self.get_dependency(depname)
 
             if not isinstance(version, Version):
@@ -43,6 +44,10 @@ class Remote(object):
         return latests
 
 class RemotePyPi(Remote):
+    """
+    If you have another remote able to speak pypi.python.org's JSON api,
+    subclass, override __init__ to super() then self.api_url = 'your_remote'.
+    """
 
     def __init__(self):
         super(RemotePyPi, self).__init__()
@@ -170,7 +175,7 @@ class Pyrrot(object):
     def work(self, requirements_path, remote):
         reqs = self.read_requirements(requirements_path)
         parsed = self.parse_requirements(reqs)
-        latests = remote.get_latests(parsed)
+        latests = remote.get_latests(parsed.keys())
         olds = self.get_olds(parsed, latests)
 
         return olds
