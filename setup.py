@@ -20,5 +20,5 @@ if __name__ == '__main__':
                 'pyrrot = pyrrot:main'
             ]
         },
-        install_requires=['requests<3.0', 'packaging']
+        install_requires=['requests', 'packaging']
     )

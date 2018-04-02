@@ -14,11 +14,12 @@ from packaging.specifiers import Specifier, SpecifierSet
 
 from pyrrot.utils import get_class
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 class ReqReader(object):
 
     def __init__(self, location):
+        super(ReqReader, self).__init__()
         self.location = location
 
     def read(self):
@@ -229,5 +230,4 @@ class Pyrrot(object):
         return Pyrrot()
 
 def main():
-    app = Pyrrot.App()
-    app.run()
+    Pyrrot.App().run()
