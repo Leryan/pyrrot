@@ -14,9 +14,9 @@ from packaging.specifiers import Specifier, SpecifierSet
 
 from pyrrot.utils import get_class
 
-from pyrrot.outputs import *
-from pyrrot.remotes import *
-from pyrrot.reqreaders import *
+from pyrrot.outputs import Output
+from pyrrot.remotes import Remote
+from pyrrot.reqreaders import ReqReader
 
 __version__ = '0.0.6'
 
