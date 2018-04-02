@@ -12,11 +12,38 @@ from packaging.requirements import Requirement
 from packaging.version import Version
 from packaging.specifiers import Specifier, SpecifierSet
 
-__version__ = '0.0.3'
+from pyrrot.utils import get_class
+
+__version__ = '0.0.4'
+
+class ReqReader(object):
+
+    def __init__(self, location):
+        self.location = location
+
+    def read(self):
+        """
+        Override this method and use self.location
+
+        :returns: requirements as they would be written in a requirements.txt file
+        :rtype list[str]:
+        """
+        raise NotImplementedError()
+
+
+class ReqReaderFile(ReqReader):
+
+    def read(self):
+        res = []
+
+        with open(self.location, 'r') as fh:
+            res = map(str.strip, fh.readlines())
+
+        return res
 
 class Remote(object):
 
-    def get_dependency(self, name):
+    def get_latest_of(self, name):
         """
         :rtype Version:
         """
@@ -28,7 +55,7 @@ class Remote(object):
         to fetch all dependencies at once and build the map
         is required.
 
-        Otherwise, this function will ask get_dependency() to work.
+        Otherwise, this function will ask get_latest_of() to work.
 
         :param dependencies list[str]: dependencies name
         :returns: map of dependencies latest version
@@ -37,10 +64,10 @@ class Remote(object):
         latests = {}
 
         for depname in dependencies:
-            version = self.get_dependency(depname)
+            version = self.get_latest_of(depname)
 
             if not isinstance(version, Version):
-                raise TypeError('get_dependency returned a {} object instead of Version'.format(version.__class__.__name__))
+                raise TypeError('get_latest_of returned a {} object instead of Version'.format(version.__class__.__name__))
 
             latests[depname] = version
 
@@ -58,7 +85,7 @@ class RemotePyPi(Remote):
         self.s = requests.Session()
         self.api_url = 'https://pypi.python.org/pypi/{}/json'
 
-    def get_dependency(self, name):
+    def get_latest_of(self, name):
         r = self.s.get(self.api_url.format(name))
 
         if not r.ok:
@@ -69,11 +96,6 @@ class RemotePyPi(Remote):
         jr = r.json()
 
         return Version(jr['info']['version'])
-
-class RemoteBullshit(Remote):
-
-    def get_dependency(self, name):
-        return Version('1.2.3')
 
 class Printer(object):
 
@@ -144,15 +166,6 @@ class Pyrrot(object):
         return old
 
     @staticmethod
-    def read_requirements(path):
-        res = []
-
-        with open(path, 'r') as fh:
-            res = map(str.strip, fh.readlines())
-
-        return res
-
-    @staticmethod
     def parse_requirements(sreqs):
         """
         :param sreqs list[str]:
@@ -162,40 +175,6 @@ class Pyrrot(object):
                 Requirement(sreq) for sreq in sreqs
             ]
         }
-
-    @classmethod
-    def get_class(cls, mod_path):
-        mp = mod_path.split('.')
-
-        mod_path = '.'.join(mp[:-1])
-        class_name = mp[-1]
-
-        module = importlib.import_module(mod_path)
-
-        the_class = getattr(module, class_name, None)
-
-        if the_class is None:
-            raise Exception('remote class not found: {}'.format(mod_path))
-
-        return the_class
-
-    @classmethod
-    def get_remote_class(cls, remote_mod_path):
-        remote_class = cls.get_class(remote_mod_path)
-
-        if not issubclass(remote_class, Remote):
-            raise TypeError('remote does not subclasses {}'.format(Remote.__name__))
-
-        return remote_class
-
-    @classmethod
-    def get_printer_class(cls, printer_mod_path):
-        printer_class = cls.get_class(printer_mod_path)
-
-        if not issubclass(printer_class, Printer):
-            raise TypeError('remote does not subclasses {}'.format(Printer.__name__))
-
-        return printer_class
 
     def get_olds(self, parsed, latests):
         olds = {}
@@ -209,34 +188,40 @@ class Pyrrot(object):
 
         return olds
 
-    def work(self, requirements_path, remote):
-        reqs = self.read_requirements(requirements_path)
+    def work(self, reqreader, remote, printer):
+        """
+        :param reqreader ReqReader:
+        :param remote Remote:
+        :param printer Printer:
+        """
+        reqs = reqreader.read()
         parsed = self.parse_requirements(reqs)
         latests = remote.get_latests(parsed.keys())
         olds = self.get_olds(parsed, latests)
-
-        return olds
+        printer.print_olds(olds)
 
     def run(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-r', help='requirements.txt file', required=True, dest='reqs')
+        parser.add_argument('-r', help='requirements.txt file location', required=True, dest='reqs')
         parser.add_argument(
             '--printer',
             default='{}.HumanPrinter'.format(__name__),
             help='output class. for JSON use {}.JSONPrinter'.format(__name__)
         )
+        parser.add_argument('--reqreader', default='{}.ReqReaderFile'.format(__name__))
         parser.add_argument('--remote', default='{}.RemotePyPi'.format(__name__))
 
         args = parser.parse_args()
 
-        remote_class = self.get_remote_class(args.remote)
-        printer_class = self.get_printer_class(args.printer)
+        remote_class = get_class(args.remote, Remote)
+        printer_class = get_class(args.printer, Printer)
+        reqreader_class = get_class(args.reqreader, ReqReader)
 
         printer = printer_class()
         remote = remote_class()
-        olds = self.work(args.reqs, remote)
+        reqreader = reqreader_class(args.reqs)
 
-        printer.print_olds(olds)
+        self.work(reqreader, remote, printer)
 
 
     @staticmethod
