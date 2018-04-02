@@ -2,7 +2,7 @@
 
 Python Rotten Requirements
 
- * Supports `pypi.python.org` as remote repository by default
+ * Supports any remote repository that speaks PyPi's `/json` API through the `--remote-location` parameter
  * Supports "human" and JSON output
  * Uses the [packaging](https://github.com/pypa/packaging) module to parse and compare versions
  * Inspired by [piprot](https://github.com/sesh/piprot)
@@ -16,7 +16,7 @@ pip install git+https://github.com/Leryan/pyrrot
 ## Usage
 
 ```bash
-pyrrot -r requirements.txt [--remote package.RemoteClass] [--printer package.PrinterClass]
+pyrrot -r requirements.txt [--reqreader package.ReqReaderClass] [--remote package.RemoteClass] [--output package.OutputClass]
 ```
 
 ## Example
@@ -34,7 +34,7 @@ python-ldap: old: wants: <3.0.0, latest: 3.0.0
 ### JSON output
 
 ```
-$ pyrrot -r ~/someproject/requirements.txt --printer pyrrot.JSONPrinter | python -m json.tool
+$ pyrrot -r ~/someproject/requirements.txt --output pyrrot.remotes.JSON | python -m json.tool
 ```
 
 ```json
@@ -56,16 +56,15 @@ $ pyrrot -r ~/someproject/requirements.txt --printer pyrrot.JSONPrinter | python
 
 ### Custom remote for latest versions
 
-Create your own subclass of `pyrrot.Remote` and use it with `--remote yourpackage.YourRemote`. See `pyrrot.RemotePyPi` for an example.
+Create your own subclass of `pyrrot.remotes.Remote` and use it with `--remote yourpackage.YourRemote`. See `pyrrot.remotes.PyPi` for an example.
 
 ### Custom output
 
-See `pyrrot.HumanPrinter` class. Create your own subclass of `pyrrot.Printer` and use it with `--printer yourpackage.YourPrinter`.
+See `pyrrot.outputs.Human` class. Create your own subclass of `pyrrot.outputs.Output` and use it with `--output yourpackage.YourOutput`.
 
-Of course "printer" here doesn't mean you have to output on `stdout`, you could for example put results in a database.
+This could allow you to put results in a database.
 
 ## Todo
 
- * [x] Support for custom remote dependency checker
  * [ ] Check requirements for currently installed package
  * [ ] Support remote dependencies from git or any other VCS
