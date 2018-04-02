@@ -2,8 +2,8 @@
 
 Python Rotten Requirements
 
- * Supports `pypi.python.org` as remote repository by default, by lets you write your own remote checker, see the `RemotePyPi` class
- * Supports "human" and JSON output, also lets you write your own printer, see the `HumanPrinter` class
+ * Supports `pypi.python.org` as remote repository by default
+ * Supports "human" and JSON output
  * Uses the [packaging](https://github.com/pypa/packaging) module to parse and compare versions
  * Inspired by [piprot](https://github.com/sesh/piprot)
 
@@ -16,7 +16,7 @@ pip install git+https://github.com/Leryan/pyrrot
 ## Usage
 
 ```bash
-pyrrot -r requirements.txt [--json]
+pyrrot -r requirements.txt [--remote package.RemoteClass] [--printer package.PrinterClass]
 ```
 
 ## Example
@@ -51,6 +51,18 @@ $ pyrrot -r ~/someproject/requirements.txt --printer pyrrot.JSONPrinter | python
     }
 }
 ```
+
+## Hack it
+
+### Custom remote for latest versions
+
+Create your own subclass of `pyrrot.Remote` and use it with `--remote yourpackage.YourRemote`. See `pyrrot.RemotePyPi` for an example.
+
+### Custom output
+
+See `pyrrot.HumanPrinter` class. Create your own subclass of `pyrrot.Printer` and use it with `--printer yourpackage.YourPrinter`.
+
+Of course "printer" here doesn't mean you have to output on `stdout`, you could for example put results in a database.
 
 ## Todo
 
