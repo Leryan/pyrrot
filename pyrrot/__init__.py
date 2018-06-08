@@ -1,24 +1,14 @@
 import argparse
-import importlib
-import re
-import sys
-
-import json
-from json import JSONEncoder
-
-import requests
 
 from packaging.requirements import Requirement
-from packaging.version import Version
 from packaging.specifiers import Specifier, SpecifierSet
-
-from pyrrot.utils import get_class
+from packaging.version import Version
 
 from pyrrot.outputs import Output
 from pyrrot.remotes import Remote
 from pyrrot.reqreaders import ReqReader
+from pyrrot.utils import get_class
 
-__version__ = '0.0.6'
 
 class Pyrrot(object):
 

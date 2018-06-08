@@ -2,8 +2,6 @@
 
 from setuptools import setup, find_packages
 
-from pyrrot import __version__ as PYRROT_VERSION
-
 if __name__ == '__main__':
     setup(
         name='pyrrot',
@@ -14,7 +12,7 @@ if __name__ == '__main__':
         zip_safe=True,
         url='https://github.com/Leryan/pyrrot',
         packages=find_packages(exclude=['test.*']),
-        version=PYRROT_VERSION,
+        version='0.0.6',
         entry_points={
             'console_scripts': [
                 'pyrrot = pyrrot:main'
