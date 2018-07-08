@@ -44,7 +44,7 @@ class Remote(object):
 
 class PyPi(Remote):
     """
-    If you have another remote able to speak pypi.python.org's JSON api,
+    If you have another remote able to speak pypi.org's JSON api,
     subclass, override __init__ to super() then self.api_url = 'your_remote'.
     """
 

@@ -90,7 +90,7 @@ class Pyrrot(object):
         )
         parser.add_argument('--reqreader', default='{}.reqreaders.File'.format(__name__))
         parser.add_argument('--remote', default='{}.remotes.PyPi'.format(__name__))
-        parser.add_argument('--remote-location', default='https://pypi.python.org/pypi')
+        parser.add_argument('--remote-location', default='https://pypi.org/pypi')
 
         args = parser.parse_args()
 
