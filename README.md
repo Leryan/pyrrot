@@ -68,3 +68,4 @@ This could allow you to put results in a database.
 
  * [ ] Check requirements for currently installed package
  * [ ] Support remote dependencies from git or any other VCS
+ * [ ] Support "pip options" like `-e` or `-r`

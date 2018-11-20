@@ -12,7 +12,7 @@ if __name__ == '__main__':
         zip_safe=True,
         url='https://github.com/Leryan/pyrrot',
         packages=find_packages(exclude=['test.*']),
-        version='0.0.6',
+        version='0.0.7',
         entry_points={
             'console_scripts': [
                 'pyrrot = pyrrot:main'

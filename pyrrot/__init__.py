@@ -1,6 +1,6 @@
 import argparse
 
-from packaging.requirements import Requirement
+from packaging.requirements import Requirement, InvalidRequirement
 from packaging.specifiers import Specifier, SpecifierSet
 from packaging.version import Version
 
@@ -50,11 +50,26 @@ class Pyrrot(object):
         """
         :param sreqs list[str]:
         """
-        return {
-            req.name: req.specifier for req in [
-                Requirement(sreq) for sreq in sreqs
-            ]
-        }
+        def f(item):
+            if not item:
+                return False
+            if item[0] == '-':
+                return False
+            if item[0] == '#':
+                return False
+            return True
+
+        sreqs = filter(f, sreqs)
+        r = {}
+        for sreq in sreqs:
+            try:
+                req = Requirement(sreq)
+            except InvalidRequirement:
+                continue
+
+            r[req.name] = req.specifier
+
+        return r
 
     def get_olds(self, parsed, latests):
         olds = {}
